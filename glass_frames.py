@@ -201,3 +201,46 @@ def connect_to_database():
     return engine
 
 engine = connect_to_database()
+
+
+def load_glasses(clean_glass_df, engine):
+    if clean_glass_df.empty:
+        raise ValueError("No cleaned data to load.")
+
+    with engine.begin() as connection:
+        clean_glass_df.to_sql(
+            name="glass_frames",
+            con=connection,
+            schema="public",
+            if_exists="replace",
+            index=False,
+            dtype={
+                "product_price": Numeric(10, 2)
+            }
+        )
+
+    print(f"Loaded {len(clean_glass_df)} rows.")
+    
+    
+try:
+    load_glasses(clean_glass_df, engine)
+finally:
+    engine.dispose()
+    
+    
+def run_etl(total_pages=20):
+    glass_df = extract_glasses(total_pages=total_pages)
+    clean_glass_df = transform_glasses(glass_df)
+
+    engine = connect_to_database()
+
+    try:
+        load_glasses(clean_glass_df, engine)
+    finally:
+        engine.dispose()
+
+    return clean_glass_df
+
+
+
+clean_glass_df = run_etl(total_pages=20)
