@@ -3,6 +3,7 @@ import requests
 import pandas as pd 
 from bs4 import BeautifulSoup
 from sqlalchemy import create_engine, URL, Numeric
+from getpass import getpass
 
 
 
@@ -106,3 +107,97 @@ def extract_glasses(total_pages=20):
         "color": color,
         "rating": rating
     })
+    
+
+   
+glass_df = extract_glasses(total_pages=20)
+glass_df.head()
+print(f"Total rows extracted: {len(glass_df)}")
+
+
+
+
+def transform_glasses(glass_df):
+    clean_glass_df = glass_df.copy()
+
+    # Clean spaces and represent missing values consistently.
+    for column in clean_glass_df.columns:
+        clean_glass_df[column] = (
+            clean_glass_df[column]
+            .astype("string")
+            .str.strip()
+        )
+
+    clean_glass_df = clean_glass_df.replace({
+        "Unknown Brand": pd.NA,
+        "Unknown Product": pd.NA,
+        "Unknown Price": pd.NA,
+        "Unknown Color": pd.NA,
+        "": pd.NA
+    })
+
+    # Convert price to float.
+    clean_glass_df["product_price"] = pd.to_numeric(
+        clean_glass_df["product_price"]
+        .str.replace("$", "", regex=False)
+        .str.replace(",", "", regex=False),
+        errors="coerce"
+    ).astype("float64")
+
+    # Separate color and color code.
+    color_parts = clean_glass_df["color"].str.rsplit(
+        " (", n=1, expand=True
+    )
+
+    # Ensure both columns exist even if no codes were found.
+    color_parts = color_parts.reindex(columns=[0, 1])
+
+    clean_glass_df["color"] = (
+        color_parts[0].astype("string").str.strip()
+    )
+
+    clean_glass_df["color_code"] = (
+        color_parts[1]
+        .astype("string")
+        .str.removesuffix(")")
+        .str.strip()
+    )
+
+    # Remove rows with no usable product details.
+    clean_glass_df = clean_glass_df.dropna(
+        subset=[
+            "brand_name",
+            "product_name",
+            "product_price",
+            "color"
+        ],
+        how="all"
+    ).reset_index(drop=True)
+
+    return clean_glass_df
+
+
+clean_glass_df = transform_glasses(glass_df)
+clean_glass_df.head()
+print(f"The data description is : {clean_glass_df.head()}")
+
+
+
+def connect_to_database():
+    connection_url = URL.create(
+        drivername="postgresql+psycopg",
+        username="postgres",
+        password=getpass("Enter your PostgreSQL password: "),
+        host="localhost",
+        port=5432,
+        database="glass_framesDB"
+    )
+
+    engine = create_engine(
+        connection_url,
+        connect_args={"connect_timeout": 10}
+    )
+
+    return engine
+
+engine = connect_to_database()
