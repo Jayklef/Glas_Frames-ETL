@@ -556,6 +556,26 @@ The script includes a one-second delay between pages. Adjust request frequency t
 - Add automated tests for parsing and transformations.
 - Schedule execution after making unattended authentication available.
 
+
+### Retrieve all data
+
+Connect to `glass_framesDB` in pgAdmin, open the Query Tool, and run:
+
+```sql
+SELECT *
+FROM public.glass_frames;
+```
+
+This returns every row and column in the table.
+
+To sort the results by brand and product name:
+
+```sql
+SELECT *
+FROM public.glass_frames
+ORDER BY brand_name, product_name;
+```
+
 ## License
 
 No license is specified in this README. Add a `LICENSE` file to define the permissions for reuse of the project's code.
