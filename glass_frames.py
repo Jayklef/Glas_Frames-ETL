@@ -110,9 +110,9 @@ def extract_glasses(total_pages=20):
     
 
    
-glass_df = extract_glasses(total_pages=20)
-glass_df.head()
-print(f"Total rows extracted: {len(glass_df)}")
+#glass_df = extract_glasses(total_pages=20)
+#glass_df.head()
+#print(f"Total rows extracted: {len(glass_df)}")
 
 
 
@@ -177,9 +177,9 @@ def transform_glasses(glass_df):
     return clean_glass_df
 
 
-clean_glass_df = transform_glasses(glass_df)
-clean_glass_df.head()
-print(f"The data description is : {clean_glass_df.head()}")
+# clean_glass_df = transform_glasses(glass_df)
+# clean_glass_df.head()
+# print(f"The data description is : {clean_glass_df.head()}")
 
 
 
@@ -200,7 +200,7 @@ def connect_to_database():
 
     return engine
 
-engine = connect_to_database()
+#engine = connect_to_database()
 
 
 def load_glasses(clean_glass_df, engine):
@@ -222,10 +222,10 @@ def load_glasses(clean_glass_df, engine):
     print(f"Loaded {len(clean_glass_df)} rows.")
     
     
-try:
-    load_glasses(clean_glass_df, engine)
-finally:
-    engine.dispose()
+# try:
+#     load_glasses(clean_glass_df, engine)
+# finally:
+#     engine.dispose()
     
     
 def run_etl(total_pages=20):
@@ -243,4 +243,10 @@ def run_etl(total_pages=20):
 
 
 
-clean_glass_df = run_etl(total_pages=20)
+if __name__ == "__main__":
+    clean_glass_df = run_etl(total_pages=20)
+
+    print("\nPreview of cleaned data:")
+    print(clean_glass_df.head())
+
+    print(f"\nTotal cleaned rows: {len(clean_glass_df)}")
